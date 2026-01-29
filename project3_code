@@ -1,0 +1,56 @@
+#!/usr/bin/env python3
+
+import rospy
+import time
+from geometry_msgs.msg import Twist
+
+def square_movement():
+    rospy.init_node('square_movement_node')
+    pub = rospy.Publisher('/cmd_vel', Twist, queue_size=1)
+    rate = rospy.Rate(10)
+
+    forward_speed = 0.12
+    turn_speed = 0.22
+    forward_time = 3.5
+    turn_time = 7.6
+    
+    time.sleep(1.0)  
+    print("开始移动")
+    for i in range(4):
+        print(f"\n第 {i+1} 条边")
+        print(f"直行 {forward_time} 秒")
+        start_t = time.time()
+        while time.time() - start_t < forward_time:
+            cmd = Twist()
+            cmd.linear.x = forward_speed
+            pub.publish(cmd)
+            rate.sleep()
+        stop_cmd = Twist()
+        pub.publish(stop_cmd)
+        time.sleep(1.0)
+        
+        if i < 3:
+            print(f"右转 {turn_time} 秒")
+            start_t = time.time()
+            actual_time = 0
+            
+            while time.time() - start_t < turn_time:
+                cmd = Twist()
+                cmd.angular.z = -turn_speed  
+                pub.publish(cmd)
+                rate.sleep()
+                actual_time = time.time() - start_t
+            stop_cmd = Twist()
+            pub.publish(stop_cmd)
+            time.sleep(0.5)
+    
+    print("\n移动完成!")
+    final_cmd = Twist()
+    pub.publish(final_cmd)
+    print("程序结束")
+
+if __name__ == '__main__':
+    try:
+        square_movement()
+    except rospy.ROSInterruptException:
+        print("程序中断")
